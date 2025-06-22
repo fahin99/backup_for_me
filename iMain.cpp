@@ -1,17 +1,20 @@
 #include "iGraphics.h"
+#include "iSound.h"
 #include <iostream>
 using namespace std;
 /*
 function iDraw() is called again and again by the system.
 */
+int ch=-1;
+int click;
 int screenCount = 0;
 int volume = 1;
 int music_vol = 0, musicPlaying=-1;
 int width = 500, height = 650;
 int ball_radius = 10;
 int ball_diameter = 2*ball_radius;
-
-
+int v=3;
+int name_taken = 0;
 typedef struct{
     int x,y;
     //0 for red, 1 for green, 2 for blue
@@ -104,8 +107,8 @@ int b = 0;
 void setBall()
 {
     throw_ball = 1;
-    dx = sin(angle * 3.1416/180);
-    dy = cos(angle * 3.1416/180);
+    dx = v*sin(angle * 3.1416/180);
+    dy = v*cos(angle * 3.1416/180);
 }
 
 void resetBall()
@@ -250,7 +253,7 @@ void iDraw()
         iFilledRectangle(0, 0, 500, 650); 
         iShowImage(-50, -30, "assets/images/bg_0.png"); 
         iSetColor(42, 54, 53);
-        iTextBold(185, 428, "New  Game", GLUT_BITMAP_TIMES_ROMAN_24);
+        iTextBold(185, 428, "Play  Game", GLUT_BITMAP_TIMES_ROMAN_24);
         iSetColor(42, 54, 53);
         iTextBold(185, 358, "High-scores", GLUT_BITMAP_TIMES_ROMAN_24); 
         iSetColor(42, 54, 53);
@@ -276,34 +279,48 @@ void iDraw()
         // Code for the second screen, new game screen
         iClear();
         iShowImage(-50, -30, "assets/images/background.jpg");
-
-        /*-------------for debug purpose---------------
-        char details[100];
-        int j = ball_x / ball_diameter;
-        int i = (height - ball_y) / ball_diameter;
-        sprintf(details, "%lf %lf %i %i",ball_x,ball_y,i,j);
-        iText(200, 200, details);*/
-
-        int j = ball_x / ball_diameter;
-        int i = (height - ball_y) / ball_diameter;
-
-        iSetLineWidth(3);
-        drawAxis();
-
-        draw_all_static_ball();
-        drawCannon();
-        check_collision(i,j);
-
-
-
-        if(throw_ball)
-            drawBall(j);
-
-        char cmb[12];
-        sprintf(cmb,"COMBO: %i",(combo>=2)?combo+1:0);
-        iSetColor(255,255,255);
-        iText(200, 300, "Hello World");
-        iText(10, 25, cmb);
+        iSetColor(147, 213, 230);
+        iFilledRectangle(0, 0, 500, 650);
+        if(!name_taken)
+        {
+        iSetColor(77, 34, 29);
+        iSetColor(232, 167, 160);
+        curv_border(68, 210, 340, 260, 10);
+        iSetColor(24, 66, 35);
+        curv(68, 210, 340, 260, 10);
+        iFilledCircle(410, 471, 16);
+        iSetColor(255, 0, 0);
+        iFilledCircle(410, 471, 15);
+        iSetColor(255, 255, 255);
+        iTextBold(405, 466, "X", GLUT_BITMAP_HELVETICA_18);
+        iSetColor(255, 255, 255);
+    
+        }
+        else
+        {
+            /*-------------for debug purpose---------------
+            char details[100];
+            int j = ball_x / ball_diameter;
+            int i = (height - ball_y) / ball_diameter;
+            sprintf(details, "%lf %lf %i %i",ball_x,ball_y,i,j);
+            iText(200, 200, details);*/
+            int j = ball_x / ball_diameter;
+            int i = (height - ball_y) / ball_diameter;
+            iSetLineWidth(3);
+            drawAxis();
+            draw_all_static_ball();
+            drawCannon();
+            check_collision(i,j);
+            if(throw_ball)
+            {
+                drawBall(j);
+            }
+            char cmb[12];
+            sprintf(cmb,"COMBO: %i",(combo>=2)?combo+1:0);
+            iSetColor(255,255,255);
+            iText(200, 300, "Hello World");
+            iText(10, 25, cmb);
+        }
     }
     else if(screenCount == 2)
     {
@@ -451,6 +468,35 @@ void iDraw()
         iShowImage(-50, -30, "assets/images/bg_7.png");
         iSetTransparentColor(147, 213, 230, 0.5);
         iFilledRectangle(0, 0, 500, 650); 
+        iSetColor(32, 59, 97);
+        curv_border(30, 185, 433, 321, 10);
+        iSetColor(139, 190, 232);
+        curv(30, 185, 433, 321, 10);
+        iSetColor(77, 34, 29);
+        iFilledCircle(460, 504, 16);
+        iSetColor(255, 0, 0);
+        iFilledCircle(460, 504, 15);
+        iSetColor(255, 255, 255);
+        iTextBold(453.8, 498, "X", GLUT_BITMAP_HELVETICA_18);
+        iSetColor(245, 207, 169);
+        curv_border(182, 490, 130, 40, 10);
+        iSetColor(133, 98, 80);
+        curv(182, 490, 130, 40, 10);
+        iSetColor(230, 207, 195);
+        iTextBold(200, 500, "About Us", GLUT_BITMAP_TIMES_ROMAN_24);
+        iSetColor(39, 68, 87);
+        iTextBold(50, 450, "Version 1.0.0", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 420, "Developed by:", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 380, "1. Siam Rafsan Prionto (BUET CSE-24)", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 350, "2. Kazi FAhin Abraz (BUET CSE-24)", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 310, "This is still a work in progress", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 280, "and more features will be added over the years.", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 240, "Thank you for trying it out!", GLUT_BITMAP_HELVETICA_18);
+        iSetColor(255, 255, 255);
+        iCircle(53, 206, 6);
+        iSetColor(39, 68, 87);
+        iTextBold(50, 203, "c", GLUT_BITMAP_HELVETICA_12); 
+        iTextBold(62, 200, "Copyright to the owners", GLUT_BITMAP_HELVETICA_18);
     }
 }
 
@@ -482,6 +528,7 @@ void iMouse(int button, int state, int mx, int my)
     {
         // place your codes here
         cout<<mx<<my<<screenCount<<endl;
+        
         if(screenCount==0)
         {
             if((mx-25)*(mx-25)+(my-25)*(my-25)<=289) 
@@ -547,61 +594,59 @@ void iMouse(int button, int state, int mx, int my)
                 screenCount = 0; 
             }
         }
-        else if(screenCount==3) 
+    else if (screenCount == 3) 
+    {
+        if ((mx - 406)*(mx - 406) + (my - 435)*(my - 435) <= 225)
         {
-            if ((mx - 406) * (mx - 406) + (my - 435) * (my - 435) <= 225)
-            {
-                screenCount = 0;
+            screenCount = 0;
+        }
+        else if (mx >= 236 && mx <= 312 && my >= 290 && my <= 325)
+        {
+            music_vol = 1;
+            if (ch == -1) {
+                ch = iPlaySound("assets/sounds/music_mid.wav", true, 50);
+                iSetVolume(ch, (volume == 0) ? 20 : (volume == 2) ? 70 : 40);
             }
-            else if (mx >= 236 && mx <= 312 && my >= 290 && my <= 325)
-            {
-                music_vol = 1;
-                PlaySound(0, 0, 0);
-                if (volume == 0)
-                    PlaySound("assets/sounds/music_low.wav", NULL, SND_ASYNC | SND_LOOP);
-                else if (volume == 1)
-                    PlaySound("assets/sounds/music_mid.wav", NULL, SND_ASYNC | SND_LOOP);
-                else if (volume == 2)
-                    PlaySound("assets/sounds/music_high.wav", NULL, SND_ASYNC | SND_LOOP);
+            else {
+                iResumeSound(ch);
+            }
+        }
+        else if (mx >= 313 && mx <= 400 && my >= 288 && my <= 331)
+        {
+            music_vol = 0;
+            if (ch != -1) iPauseSound(ch);
+        }
+        else if (mx >= 232 && mx <= 287 && my >= 356 && my <= 396)
+        {
+            volume = 0;
+            if (music_vol == 1 && ch != -1)
+                iSetVolume(ch, 20);
+        }
+        else if (mx >= 288 && mx <= 343 && my >= 356 && my <= 396)
+        {
+            volume = 1;
+            if (music_vol == 1 && ch != -1)
+                iSetVolume(ch, 40);
+        }
+        else if (mx >= 346 && mx <= 401 && my >= 356 && my <= 396)
+        {
+            volume = 2;
+            if (music_vol == 1 && ch != -1)
+                iSetVolume(ch, 70); 
+        }
+    }
+    if(screenCount == 8)
+    {
+        if((mx-460)*(mx-460)+(my-504)*(my-504)<=225) 
+        {
+            screenCount = 0; 
+        }
+    }
+    if(screenCount==1){}
 
-                musicPlaying = volume + 1;
-            }
-            else if (mx >= 313 && mx <= 400 && my >= 288 && my <= 331)
-            {
-                music_vol = 0;
-                PlaySound(0, 0, 0);
-                musicPlaying = 0;
-            }
-            else if (mx >= 232 && mx <= 287 && my >= 356 && my <= 396)
-            {
-                volume = 0;
-                if (music_vol == 1)
-                {
-                    PlaySound(0, 0, 0);
-                    PlaySound("assets/sounds/music_low.wav", NULL, SND_ASYNC | SND_LOOP);
-                    musicPlaying = volume + 1;
-                }
-            }
-            else if (mx >= 288 && mx <= 343 && my >= 356 && my <= 396)
-            {
-                volume = 1;
-                if (music_vol == 1)
-                {
-                    PlaySound(0, 0, 0);
-                    PlaySound("assets/sounds/music_mid.wav", NULL, SND_ASYNC | SND_LOOP);
-                    musicPlaying = volume + 1;
-                }
-            }
-            else if (mx >= 346 && mx <= 401 && my >= 356 && my <= 396)
-            {
-                volume = 2;
-                if (music_vol == 1)
-                {
-                    PlaySound(0, 0, 0);
-                    PlaySound("assets/sounds/music_high.wav", NULL, SND_ASYNC | SND_LOOP);
-                    musicPlaying = volume + 1;
-                }
-            }
+    if(mx>=0 && mx<=500 && my>=0 && my<=650)
+        {
+            iPlaySound("assets/sounds/click.wav", false, 50);
         }
     }
 }
@@ -626,6 +671,10 @@ void iKeyboard(unsigned char key)
     {
     case 'q':
         // do something with 'q'
+        if(screenCount == 1)
+        {
+            screenCount = 0; // Go back to main menu
+        }
         break;
     case 'a':
         if(angle>-80)
@@ -679,6 +728,8 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
     // place your own initialization codes here.
+    iInitializeSound();
+
     iInitialize(500, 650, "Bouncy Bonanza");
     return 0;
 }
