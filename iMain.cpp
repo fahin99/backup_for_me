@@ -292,7 +292,7 @@ void iDraw()
         iSetColor(255, 0, 0);
         iFilledCircle(410, 471, 15);
         iSetColor(255, 255, 255);
-        iTextBold(405, 466, "X", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(405, 464, "X", GLUT_BITMAP_HELVETICA_18);
         iSetColor(255, 255, 255);
     
         }
@@ -559,6 +559,9 @@ void iMouse(int button, int state, int mx, int my)
         else if(screenCount==1)
         {
             // Code for new game screen
+            if((mx-410)*(mx-410)+(my-471)*(my-471)<=225){
+                screenCount=0;
+            }
         }
         else if(screenCount==2)
         {
@@ -594,57 +597,55 @@ void iMouse(int button, int state, int mx, int my)
                 screenCount = 0; 
             }
         }
-    else if (screenCount == 3) 
-    {
-        if ((mx - 406)*(mx - 406) + (my - 435)*(my - 435) <= 225)
+        else if (screenCount == 3) 
         {
-            screenCount = 0;
-        }
-        else if (mx >= 236 && mx <= 312 && my >= 290 && my <= 325)
-        {
-            music_vol = 1;
-            if (ch == -1) {
-                ch = iPlaySound("assets/sounds/music_mid.wav", true, 50);
-                iSetVolume(ch, (volume == 0) ? 20 : (volume == 2) ? 70 : 40);
+            if ((mx - 406)*(mx - 406) + (my - 435)*(my - 435) <= 225)
+            {
+                screenCount = 0;
             }
-            else {
-                iResumeSound(ch);
+            else if (mx >= 236 && mx <= 312 && my >= 290 && my <= 325)
+            {
+                music_vol = 1;
+                if (ch == -1) {
+                    ch = iPlaySound("assets/sounds/music_mid.wav", true, 50);
+                    iSetVolume(ch, (volume == 0) ? 20 : (volume == 2) ? 70 : 40);
+                }
+                else {
+                    iResumeSound(ch);
+                }
+            }
+            else if (mx >= 313 && mx <= 400 && my >= 288 && my <= 331)
+            {
+                music_vol = 0;
+                if (ch != -1) iPauseSound(ch);
+            }
+            else if (mx >= 232 && mx <= 287 && my >= 356 && my <= 396)
+            {
+                volume = 0;
+                if (music_vol == 1 && ch != -1)
+                    iSetVolume(ch, 20);
+            }
+            else if (mx >= 288 && mx <= 343 && my >= 356 && my <= 396)
+            {
+                volume = 1;
+                if (music_vol == 1 && ch != -1)
+                    iSetVolume(ch, 40);
+            }
+            else if (mx >= 346 && mx <= 401 && my >= 356 && my <= 396)
+            {
+                volume = 2;
+                if (music_vol == 1 && ch != -1)
+                    iSetVolume(ch, 70); 
             }
         }
-        else if (mx >= 313 && mx <= 400 && my >= 288 && my <= 331)
+        if(screenCount == 8)
         {
-            music_vol = 0;
-            if (ch != -1) iPauseSound(ch);
+            if((mx-460)*(mx-460)+(my-504)*(my-504)<=225) 
+            {
+                screenCount = 0; 
+            }
         }
-        else if (mx >= 232 && mx <= 287 && my >= 356 && my <= 396)
-        {
-            volume = 0;
-            if (music_vol == 1 && ch != -1)
-                iSetVolume(ch, 20);
-        }
-        else if (mx >= 288 && mx <= 343 && my >= 356 && my <= 396)
-        {
-            volume = 1;
-            if (music_vol == 1 && ch != -1)
-                iSetVolume(ch, 40);
-        }
-        else if (mx >= 346 && mx <= 401 && my >= 356 && my <= 396)
-        {
-            volume = 2;
-            if (music_vol == 1 && ch != -1)
-                iSetVolume(ch, 70); 
-        }
-    }
-    if(screenCount == 8)
-    {
-        if((mx-460)*(mx-460)+(my-504)*(my-504)<=225) 
-        {
-            screenCount = 0; 
-        }
-    }
-    if(screenCount==1){}
-
-    if(mx>=0 && mx<=500 && my>=0 && my<=650)
+        if(mx>=0 && mx<=500 && my>=0 && my<=650)
         {
             iPlaySound("assets/sounds/click.wav", false, 50);
         }
