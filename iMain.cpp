@@ -7,24 +7,22 @@ function iDraw() is called again and again by the system.
 */
 int ch=-1;
 int click;
-int screenCount = 0;
+int screenCount = 0,screen=1;
 int volume = 1;
 int music_vol = 0, musicPlaying=-1;
 int width = 500, height = 650;
 int ball_radius = 10;
 int ball_diameter = 2*ball_radius;
-int v=3;
 int name_taken = 0;
-typedef struct{
-    int x,y;
-    //0 for red, 1 for green, 2 for blue
-    int red,green,blue;
 
+typedef struct{
+    int red,green,blue;
     int exist;
+    int x,y;
 }staticBall;
 
 //number of static balls = 500 / (10 * 2) * 3(rows);
-staticBall all_static_balls[30][25];
+staticBall all_static_balls[31][25];
 
 
 void draw_a_static_ball(staticBall aBall){
@@ -45,16 +43,33 @@ void draw_all_static_ball()
     }
 }
 //-------ball er co ordinate draw a static ball e thakbe-----------
+staticBall emptyBall;
+void set_coordinates(){
+    for(int i = 0;i<31;i++){
+        for(int j=0;j<25;j++){
+
+            all_static_balls[i][j].x = (2*j+1)*ball_radius;
+            all_static_balls[i][j].y = height - (2*i+1)*ball_radius;
+
+        }
+    }
+}
+void set_static_ball(int red,int green,int blue,int i,int j){
+    all_static_balls[i][j].exist = 1;
+    all_static_balls[i][j].red = red;
+    all_static_balls[i][j].green = green;
+    all_static_balls[i][j].blue = blue;
+    all_static_balls[i][j].x = (2*j+1)*ball_radius;
+    all_static_balls[i][j].y = height - (2*i+1)*ball_radius;
+}
+
 void fillwithballs(){
 
     for(int i=0;i<5;i++){
         int c = 0;
         for(int j =0;j<25;j++){
             staticBall tempBall;
-            tempBall.x =(2*j+1)*ball_radius;
-            tempBall.y = height - (2*i+1)*ball_radius;
             tempBall.exist =1;
-
             switch(c%3){
                 case 0:tempBall.red =255;tempBall.blue =0;tempBall.green =0;break;
                 case 1:tempBall.green =255;tempBall.red =0;tempBall.blue =0;break;
@@ -65,20 +80,18 @@ void fillwithballs(){
         }
     }
 
-    for(int i = 5;i<30;i++){
+    for(int i = 5;i<31;i++){
         for(int j=0;j<25;j++){
-            staticBall tempBall;
-            tempBall.x =(2*j+1)*ball_radius;
-            tempBall.y = height - (2*i+1)*ball_radius;
-            tempBall.exist =0;
-            all_static_balls[i][j] = tempBall;
+            all_static_balls[i][j] = emptyBall;
         }
     }
+    set_coordinates();
+    set_static_ball(255,255,255,20,20);
 }
 //void loweringstaticball(){ball.x;ball.y++} --------time mode er gameplay er jonno-----------
+
 void noballs()
 {
-    staticBall emptyBall;
     for(int i = 0;i<30;i++){
         for(int j=0;j<25;j++){
             all_static_balls[i][j] = emptyBall;
@@ -100,6 +113,7 @@ double ball_y = 50;
 int throw_ball = 0;
 double dx;
 double dy;
+double velocity = 3;
 int color_counter = 0;
 int r = 255;
 int g = 0;
@@ -107,8 +121,8 @@ int b = 0;
 void setBall()
 {
     throw_ball = 1;
-    dx = v*sin(angle * 3.1416/180);
-    dy = v*cos(angle * 3.1416/180);
+    dx = velocity*sin(angle * 3.1416/180);
+    dy = velocity*cos(angle * 3.1416/180);
 }
 
 void resetBall()
@@ -145,7 +159,7 @@ int combo = 0;
 void check_neighbour(int i,int j){
     combo++;
     all_static_balls[i][j].exist=0;
-    if (all_static_balls[i-1][j].exist){
+    if (i!=0 && all_static_balls[i-1][j].exist){
         if (r==all_static_balls[i-1][j].red && g==all_static_balls[i-1][j].green && b==all_static_balls[i-1][j].blue){
         check_neighbour(i-1,j);
         }
@@ -168,38 +182,103 @@ void check_neighbour(int i,int j){
 }
 
 void check_collision(int i, int j){
+    int startchecking = 0;
     if (all_static_balls[i][j].exist){
-    if (r==all_static_balls[i][j].red && g==all_static_balls[i][j].green && b==all_static_balls[i][j].blue){
-    check_neighbour(i,j);
+        if(all_static_balls[i+1][j].exist==0){
+            i = i+1;
+            j = j;
+        }
+        else if(dx>0){
+            if(all_static_balls[i][j-1].exist==0){
+                i = i;
+                j = j-1;
+            }
+            else{
+                i = i+1;
+                j = j-1;
+            }
 
+        }
+        else if(dx<0){
+            if(all_static_balls[i][j-1].exist==0){
+                i = i;
+                j = j+1;
+            }
+            else{
+                i = i+1;
+                j = j-1;
+            }
+        }
+        startchecking = 1;
     }
-    if(combo<2){
-    all_static_balls[i][j].exist=1;
-    if(dy>0 && all_static_balls[i+1][j].exist==0){
-    all_static_balls[i+1][j].exist=1;
-    all_static_balls[i+1][j].red=r;
-    all_static_balls[i+1][j].green=g;
-    all_static_balls[i+1][j].blue=b;
+    if(ball_y + ball_radius > height) startchecking = 1;
+    //checking around i,j
+    if(startchecking){
+    if (i!=0 && all_static_balls[i-1][j].exist){
+        if (r==all_static_balls[i-1][j].red && g==all_static_balls[i-1][j].green && b==all_static_balls[i-1][j].blue){
+        combo++;
+        check_neighbour(i-1,j);
+        all_static_balls[i-1][j].exist=1;
+        }
     }
-    else if(dx>0){
-    all_static_balls[i][j-1].exist=1;
-    all_static_balls[i][j-1].red=r;
-    all_static_balls[i][j-1].green=g;
-    all_static_balls[i][j-1].blue=b;
+    if (i!=29 && all_static_balls[i+1][j].exist){
+        if (r==all_static_balls[i+1][j].red && g==all_static_balls[i+1][j].green && b==all_static_balls[i+1][j].blue){
+        combo++;
+        check_neighbour(i+1,j);
+        all_static_balls[i+1][j].exist=1;
+        }
     }
-    else if(dx<0){
-    all_static_balls[i][j+1].exist=1;
-    all_static_balls[i][j+1].red=r;
-    all_static_balls[i][j+1].green=g;
-    all_static_balls[i][j+1].blue=b;
+    if (j!=0 && all_static_balls[i][j-1].exist){
+        if (r==all_static_balls[i][j-1].red && g==all_static_balls[i][j-1].green && b==all_static_balls[i][j-1].blue){
+        combo++;
+        check_neighbour(i,j-1);
+        all_static_balls[i][j-1].exist=1;
+        }
     }
+    if (j!=24 && all_static_balls[i][j+1].exist){
+        if (r==all_static_balls[i][j+1].red && g==all_static_balls[i][j+1].green && b==all_static_balls[i][j+1].blue){
+        combo++;
+        check_neighbour(i,j+1);
+        all_static_balls[i][j+1].exist=1;
+        }
+    }
+
+    if(combo<=2){
+        all_static_balls[i][j].exist=1;
+        all_static_balls[i][j].red=r;
+        all_static_balls[i][j].green=g;
+        all_static_balls[i][j].blue=b;
+    }
+    else{
+        if (all_static_balls[i-1][j].exist){
+            if (r==all_static_balls[i-1][j].red && g==all_static_balls[i-1][j].green && b==all_static_balls[i-1][j].blue){
+                all_static_balls[i-1][j].exist=0;
+            }
+        }
+        if (all_static_balls[i+1][j].exist){
+            if (r==all_static_balls[i+1][j].red && g==all_static_balls[i+1][j].green && b==all_static_balls[i+1][j].blue){
+                all_static_balls[i+1][j].exist=0;
+
+            }
+        }
+        if (j!=0 && all_static_balls[i][j-1].exist){
+            if (r==all_static_balls[i][j-1].red && g==all_static_balls[i][j-1].green && b==all_static_balls[i][j-1].blue){
+                all_static_balls[i][j-1].exist=0;
+            }
+        }
+        if (j!=24 && all_static_balls[i][j+1].exist){
+            if (r==all_static_balls[i][j+1].red && g==all_static_balls[i][j+1].green && b==all_static_balls[i][j+1].blue){
+                all_static_balls[i][j+1].exist=0;
+            }
+        }
     }
     resetBall();
     }
 
 
 }
-void drawBall(int j)
+
+void drawBall()
 {
 
     iSetColor(r,g,b);
@@ -208,22 +287,21 @@ void drawBall(int j)
     if(ball_x - ball_radius<0 || ball_x + ball_radius > width)
         dx = -dx;
 
-    if(ball_y + ball_radius > height){
-        //resetBall();
-        //dy = -dy;
-        all_static_balls[0][j].exist=1;
-        all_static_balls[0][j].red=r;
-        all_static_balls[0][j].green=g;
-        all_static_balls[0][j].blue=b;
-        resetBall();
-    }
-    else{
         ball_x+=dx;
         ball_y+=dy;
-    }
-    /*if(ball_y - ball_radius<0){resetBall();}*/
-}
+    /*if(ball_y - ball_radius<0){
+        resetBall();
+    }*/
 
+}
+//----------------------game over function --------------------------------------
+void gameover(){
+    for(int j = 0;j<25;j++){
+        if(all_static_balls[30][j].exist){
+            exit(0);
+        }
+    }
+}
 
 void curv(int x, int y, int w, int h, int r){
         iFilledRectangle(x + r, y, w - 2*r, h); 
@@ -278,25 +356,18 @@ void iDraw()
     {
         // Code for the second screen, new game screen
         iClear();
-        iShowImage(-50, -30, "assets/images/background.jpg");
-        iSetColor(147, 213, 230);
-        iFilledRectangle(0, 0, 500, 650);
-        if(!name_taken)
+        iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
+        if(screen == 1)
         {
-        iSetColor(77, 34, 29);
-        iSetColor(232, 167, 160);
-        curv_border(68, 210, 340, 260, 10);
-        iSetColor(24, 66, 35);
-        curv(68, 210, 340, 260, 10);
-        iFilledCircle(410, 471, 16);
-        iSetColor(255, 0, 0);
-        iFilledCircle(410, 471, 15);
-        iSetColor(255, 255, 255);
-        iTextBold(405, 464, "X", GLUT_BITMAP_HELVETICA_18);
-        iSetColor(255, 255, 255);
-    
+            iSetColor(77, 34, 29);
+            iFilledCircle(396, 460, 16);
+            iSetColor(255, 0, 0);
+            iFilledCircle(396, 460, 15);
+            iSetColor(255, 255, 255);
+            iTextBold(390, 455, "X", GLUT_BITMAP_HELVETICA_18);
+            iSetColor(255, 255, 255);
         }
-        else
+        else if(screen == 2)
         {
             /*-------------for debug purpose---------------
             char details[100];
@@ -306,17 +377,21 @@ void iDraw()
             iText(200, 200, details);*/
             int j = ball_x / ball_diameter;
             int i = (height - ball_y) / ball_diameter;
+    
             iSetLineWidth(3);
             drawAxis();
+        
             draw_all_static_ball();
             drawCannon();
             check_collision(i,j);
+        
+            gameover();
+    
             if(throw_ball)
-            {
-                drawBall(j);
-            }
+                drawBall();
+        
             char cmb[12];
-            sprintf(cmb,"COMBO: %i",(combo>=2)?combo+1:0);
+            sprintf(cmb,"COMBO: %i",(combo>=2)?combo:0);
             iSetColor(255,255,255);
             iText(200, 300, "Hello World");
             iText(10, 25, cmb);
@@ -553,15 +628,30 @@ void iMouse(int button, int state, int mx, int my)
             }
             else if(mx >= 420 && mx <= 490 && my >= 10 && my <= 30) 
             {
-                screenCount = 8; // About Us screen
+                screenCount = 8;
             }
         }
         else if(screenCount==1)
         {
-            // Code for new game screen
-            if((mx-410)*(mx-410)+(my-471)*(my-471)<=225){
-                screenCount=0;
+            // Code for play game screen
+            if(!name_taken)
+            {
+                if(screen=1){
+                    if((mx-396)*(mx-396)+(my-460)*(my-460)<=256) 
+                    {
+                        screenCount = 0; 
+                    }
+                    else if(mx>=109 && mx<=245 && my>=276 && my<=304) 
+                    {
+                        screen=2;
+                    }
+                    else if(mx>=245 && mx<=381 && my>=276 && my<=304) 
+                    {
+                        screen=3; 
+                    }
+                }
             }
+            
         }
         else if(screenCount==2)
         {
@@ -638,7 +728,7 @@ void iMouse(int button, int state, int mx, int my)
                     iSetVolume(ch, 70); 
             }
         }
-        if(screenCount == 8)
+        else if(screenCount == 8)
         {
             if((mx-460)*(mx-460)+(my-504)*(my-504)<=225) 
             {
@@ -672,10 +762,7 @@ void iKeyboard(unsigned char key)
     {
     case 'q':
         // do something with 'q'
-        if(screenCount == 1)
-        {
-            screenCount = 0; // Go back to main menu
-        }
+        screenCount=0;
         break;
     case 'a':
         if(angle>-80)
@@ -696,6 +783,7 @@ void iKeyboard(unsigned char key)
     case 'r':
         noballs();
         break;
+
     // place your codes for other keys here
     default:
         break;
