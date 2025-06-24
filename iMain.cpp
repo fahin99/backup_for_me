@@ -356,9 +356,10 @@ void iDraw()
     {
         // Code for the second screen, new game screen
         iClear();
-        iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
+        
         if(screen == 1)
         {
+														iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
             iSetColor(77, 34, 29);
             iFilledCircle(396, 460, 16);
             iSetColor(255, 0, 0);
