@@ -359,7 +359,7 @@ void iDraw()
         
         if(screen == 1)
         {
-														iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
+            iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
             iSetColor(77, 34, 29);
             iFilledCircle(396, 460, 16);
             iSetColor(255, 0, 0);
@@ -370,6 +370,7 @@ void iDraw()
         }
         else if(screen == 2)
         {
+            iShowImage(-90, -60, "assets/images/bg00.jpeg");
             /*-------------for debug purpose---------------
             char details[100];
             int j = ball_x / ball_diameter;
@@ -564,7 +565,7 @@ void iDraw()
         iTextBold(50, 450, "Version 1.0.0", GLUT_BITMAP_HELVETICA_18);
         iTextBold(50, 420, "Developed by:", GLUT_BITMAP_HELVETICA_18);
         iTextBold(50, 380, "1. Siam Rafsan Prionto (BUET CSE-24)", GLUT_BITMAP_HELVETICA_18);
-        iTextBold(50, 350, "2. Kazi FAhin Abraz (BUET CSE-24)", GLUT_BITMAP_HELVETICA_18);
+        iTextBold(50, 350, "2. Kazi Fahin Abraz (BUET CSE-24)", GLUT_BITMAP_HELVETICA_18);
         iTextBold(50, 310, "This is still a work in progress", GLUT_BITMAP_HELVETICA_18);
         iTextBold(50, 280, "and more features will be added over the years.", GLUT_BITMAP_HELVETICA_18);
         iTextBold(50, 240, "Thank you for trying it out!", GLUT_BITMAP_HELVETICA_18);
