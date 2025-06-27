@@ -1,6 +1,7 @@
 #include "iGraphics.h"
 #include "iSound.h"
-#include <iostream>
+#include <bits/stdc++.h>
+#include <windows.h>
 using namespace std;
 /*
 function iDraw() is called again and again by the system.
@@ -9,12 +10,19 @@ int ch=-1;
 int click;
 int screenCount = 0,screen=1;
 int volume = 1;
-int music_vol = 0, musicPlaying=-1;
+int music_vol = 1, musicPlaying=-1;
 int width = 500, height = 650;
 int ball_radius = 10;
 int ball_diameter = 2*ball_radius;
-int name_taken = 0;
-
+int name_taken=0, in_menu=0, in_game=0;
+bool musicPaused=false, shouldStartMuse=false;
+int targetVolume = 40, currentVolume = 0;
+bool fadingIn = false, fadingOut = false;
+int game_muse=-1, menu_muse=-1;
+int gameModeValue = 0, subModeSelect = 0;
+int totalTime = 0;
+time_t gameStartTime = 0;
+bool gameOverState = false;
 typedef struct{
     int red,green,blue;
     int exist;
@@ -28,8 +36,11 @@ staticBall all_static_balls[31][25];
 void draw_a_static_ball(staticBall aBall){
 
 
+
     iSetColor(aBall.red,aBall.green,aBall.blue);
     iFilledCircle(aBall.x,aBall.y,ball_radius);
+    iSetColor(255,255,255);
+    iFilledCircle(aBall.x-4,aBall.y+4,2);
 }
 
 void draw_all_static_ball()
@@ -63,17 +74,53 @@ void set_static_ball(int red,int green,int blue,int i,int j){
     all_static_balls[i][j].y = height - (2*i+1)*ball_radius;
 }
 
-void fillwithballs(){
 
+void all_ball_down()
+{
+    for(int i=30;i>0;i--){
+        for(int j=0;j<25;j++){
+            all_static_balls[i][j] = all_static_balls[i-1][j];
+        }
+    }
+    for(int j=0;j<25;j++){
+        all_static_balls[0][j] = emptyBall;
+    }
+    set_coordinates();
+}
+void all_ball_up()
+{
+    int flag = 1;
+    for(int j=0;j<25;j++){
+        if(all_static_balls[0][j].exist){
+            flag = 0;
+        }
+    }
+    if(flag){
+    for(int j=0;j<25;j++){
+        all_static_balls[30][j] = emptyBall;
+    }
+    for(int i=0;i<30;i++){
+        for(int j=0;j<25;j++){
+            all_static_balls[i][j] = all_static_balls[i+1][j];
+        }
+    }
+
+    set_coordinates();
+    }
+}
+void fillwithballs(){
     for(int i=0;i<5;i++){
         int c = 0;
         for(int j =0;j<25;j++){
             staticBall tempBall;
             tempBall.exist =1;
-            switch(c%3){
+            switch(c%6){
                 case 0:tempBall.red =255;tempBall.blue =0;tempBall.green =0;break;
                 case 1:tempBall.green =255;tempBall.red =0;tempBall.blue =0;break;
                 case 2:tempBall.blue =255;tempBall.red =0;tempBall.green =0;break;
+                case 3:tempBall.blue =0;tempBall.red =255;tempBall.green =255;break;
+                case 4:tempBall.blue =255;tempBall.red =0;tempBall.green =255;break;
+                case 5:tempBall.blue =255;tempBall.red =255;tempBall.green =0;break;
             }
             all_static_balls[i][j] = tempBall;
             c++;
@@ -86,18 +133,192 @@ void fillwithballs(){
         }
     }
     set_coordinates();
-    set_static_ball(255,255,255,20,20);
+    for(int i = 0; i < 7; i++) {
+        all_ball_down();
+    }
+    set_static_ball(255,255,0,20,20);
 }
 //void loweringstaticball(){ball.x;ball.y++} --------time mode er gameplay er jonno-----------
 
 void noballs()
 {
-    for(int i = 0;i<30;i++){
+    for(int i = 0;i<31;i++){
         for(int j=0;j<25;j++){
             all_static_balls[i][j] = emptyBall;
         }
     }
 }
+
+void fillwithdiamond()
+{
+    noballs();
+    set_coordinates();
+    for(int i=0;i<11;i++){
+
+        set_static_ball(255,0,0,i+9,i+2);
+        set_static_ball(255,0,0,i+9,-i+2+20);
+
+    }
+    for(int i=0;i<10;i++){
+
+        set_static_ball(0,255,0,i+9,i+3);
+        set_static_ball(0,255,0,i+9,-i+3+18);
+
+    }
+    for(int i=0;i<9;i++){
+
+        set_static_ball(0,0,255,i+9,i+4);
+        set_static_ball(0,0,255,i+9,-i+4+16);
+
+    }
+    for(int i=0;i<8;i++){
+
+        set_static_ball(0,255,255,i+9,i+5);
+        set_static_ball(0,255,255,i+9,-i+5+14);
+
+    }
+    for(int i=0;i<7;i++){
+
+        set_static_ball(0,0,255,i+9,i+6);
+        set_static_ball(0,0,255,i+9,-i+6+12);
+
+    }
+    for(int i=0;i<6;i++){
+
+        set_static_ball(0,255,0,i+9,i+7);
+        set_static_ball(0,255,0,i+9,-i+7+10);
+
+    }
+    for(int i=0;i<5;i++){
+
+        set_static_ball(255,0,255,i+9,i+8);
+        set_static_ball(255,0,255,i+9,-i+8+8);
+
+    }
+    for(int i=0;i<4;i++){
+
+        set_static_ball(255,255,0,i+9,i+9);
+        set_static_ball(255,255,0,i+9,-i+9+6);
+
+    }
+    for(int i=0;i<3;i++){
+
+        set_static_ball(0,255,255,i+9,i+10);
+        set_static_ball(0,255,255,i+9,-i+10+4);
+
+    }
+    for(int i=0;i<2;i++){
+
+        set_static_ball(255,0,0,i+9,i+11);
+        set_static_ball(255,0,0,i+9,-i+11+2);
+
+    }
+    set_static_ball(0,255,0,9,12);
+    set_static_ball(255,0,0,8,12);
+    set_static_ball(0,255,255,8,11);
+    set_static_ball(0,255,255,8,13);
+    set_static_ball(0,255,255,7,12);
+    for(int i=0;i<3;i++){
+        set_static_ball(255,255,0,6+i,12+i);
+        set_static_ball(255,255,0,6+i,12-i);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(255,0,255,6+i,12+i+1);
+        set_static_ball(255,0,255,6+i,12-i-1);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,255,0,6+i,12+i+2);
+        set_static_ball(0,255,0,6+i,12-i-2);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,0,255,6+i,12+i+3);
+        set_static_ball(0,0,255,6+i,12-i-3);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,255,255,6+i,12+i+4);
+        set_static_ball(0,255,255,6+i,12-i-4);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,0,255,6+i,12+i+5);
+        set_static_ball(0,0,255,6+i,12-i-5);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,255,0,6+i,12+i+6);
+        set_static_ball(0,255,0,6+i,12-i-6);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(255,0,0,6+i,12+i+7);
+        set_static_ball(255,0,0,6+i,12-i-7);
+    }
+    for(int i=0;i<7;i++){
+        all_ball_up();
+    }
+}
+void fillwithreversediamond()
+{
+    noballs();
+    set_coordinates();
+    for(int i=0;i<11;i++){
+        set_static_ball(255,0,0,i,i+2);
+        set_static_ball(255,0,0,i,-i+2+20);
+    }
+    for(int i=0;i<10;i++){
+        set_static_ball(0,255,0,i,i+3);
+        set_static_ball(0,255,0,i,-i+3+18);
+    }
+    for(int i=0;i<9;i++){
+        set_static_ball(0,0,255,i,i+4);
+        set_static_ball(0,0,255,i,-i+4+16);
+    }
+    for(int i=0;i<8;i++){
+        set_static_ball(0,255,255,i,i+5);
+        set_static_ball(0,255,255,i,-i+5+14);
+    }
+    for(int i=0;i<7;i++){
+        set_static_ball(0,0,255,i,i+6);
+        set_static_ball(0,0,255,i,-i+6+12);
+    }
+    for(int i=0;i<6;i++){
+        set_static_ball(0,255,0,i,i+7);
+        set_static_ball(0,255,0,i,-i+7+10);
+    }
+    for(int i=0;i<5;i++){
+        set_static_ball(255,0,255,i,i+8);
+        set_static_ball(255,0,255,i,-i+8+8);
+    }
+    for(int i=0;i<4;i++){
+        set_static_ball(255,255,0,i,i+9);
+        set_static_ball(255,255,0,i,-i+9+6);
+    }
+    for(int i=0;i<3;i++){
+        set_static_ball(0,255,255,i,i+10);
+        set_static_ball(0,255,255,i,-i+10+4);
+    }
+    for(int i=0;i<2;i++){
+        set_static_ball(255,0,0,i,i+11);
+        set_static_ball(255,0,0,i,-i+11+2);
+    }
+    set_static_ball(0,255,0,0,12);
+
+    for(int i = 0; i < 7; i++) {
+        all_ball_down();
+    }
+}
+void fillwithrandom()
+{
+    int r = rand() % 3;
+    if(r == 0) {
+        fillwithballs();
+        subModeSelect = 1;
+    } else if(r == 1) {
+        fillwithdiamond();
+        subModeSelect = 2;
+    } else {
+        fillwithreversediamond();
+        subModeSelect = 3;
+    }
+}
+
 void drawAxis()
 {
     iSetColor(255, 255, 255);
@@ -118,11 +339,19 @@ int color_counter = 0;
 int r = 255;
 int g = 0;
 int b = 0;
+int r2 = 0;
+int g2 = 255;
+int b2 = 0;
+int r3 = 0;
+int g3 = 0;
+int b3 = 255;
+int moves = 0;
 void setBall()
 {
     throw_ball = 1;
     dx = velocity*sin(angle * 3.1416/180);
     dy = velocity*cos(angle * 3.1416/180);
+    moves++;
 }
 
 void resetBall()
@@ -130,11 +359,21 @@ void resetBall()
     throw_ball = 0;
     ball_x = 250;
     ball_y = 50;
-    color_counter++;
-    switch(color_counter%3){
-        case 1: r = 0; g = 255; b = 0;break;
-        case 2: r = 0; g = 0; b = 255;break;
-        case 0: r = 255; g = 0; b = 0;break;
+    color_counter=rand();
+    r = r2;
+    g = g2;
+    b = b2;
+    r2 = r3;
+    g2 = g3;
+    b2 = b3;
+    switch(color_counter%6){
+        case 0: r3 = 255; g3 = 0; b3 = 0;break;
+        case 1: r3 = 0; g3 = 255; b3 = 0;break;
+        case 2: r3 = 0; g3 = 0; b3 = 255;break;
+        case 3: r3 = 0; g3 = 255; b3 = 255;break;
+        case 4: r3 = 255; g3 = 0; b3 = 255;break;
+        case 5: r3 = 255; g3 = 255; b3 = 0;break;
+
     }
 }
 
@@ -153,7 +392,18 @@ void drawCannon() //---------------------working alright------------------------
     if(throw_ball==0){
         iSetColor(r,g,b);
         iFilledCircle(250,40, ball_radius);
+        iSetColor(255,255,255);
+        iFilledCircle(250-5,40+5,2);
     }
+    iSetColor(r2,g2,b2);
+    iFilledCircle(252+ball_diameter,40, ball_radius);
+    iSetColor(255,255,255);
+    iFilledCircle(252+ball_diameter-5,40+5,2);
+    iSetColor(r3,g3,b3);
+    iFilledCircle(254+ball_diameter*2,40, ball_radius);
+    iSetColor(255,255,255);
+    iFilledCircle(254+ball_diameter*2-5,40+5,2);
+
 }
 int combo = 0;
 void check_neighbour(int i,int j){
@@ -179,6 +429,28 @@ void check_neighbour(int i,int j){
         check_neighbour(i,j+1);
         }
     }
+    // /*
+    if (i!=0 && j!=0 && all_static_balls[i-1][j-1].exist){
+        if (r==all_static_balls[i-1][j-1].red && g==all_static_balls[i-1][j-1].green && b==all_static_balls[i-1][j-1].blue){
+        check_neighbour(i-1,j-1);
+        }
+    }
+    if (i!=0 && j!=24 && all_static_balls[i-1][j+1].exist){
+        if (r==all_static_balls[i-1][j+1].red && g==all_static_balls[i-1][j+1].green && b==all_static_balls[i-1][j+1].blue){
+        check_neighbour(i-1,j+1);
+        }
+    }
+    if (j!=0 && all_static_balls[i+1][j-1].exist){
+        if (r==all_static_balls[i+1][j-1].red && g==all_static_balls[i+1][j-1].green && b==all_static_balls[i+1][j-1].blue){
+        check_neighbour(i+1,j-1);
+        }
+    }
+    if (j!=24 && all_static_balls[i+1][j+1].exist){
+        if (r==all_static_balls[i+1][j+1].red && g==all_static_balls[i+1][j+1].green && b==all_static_balls[i+1][j+1].blue){
+        check_neighbour(i+1,j+1);
+        }
+    }
+    //*/
 }
 
 void check_collision(int i, int j){
@@ -200,20 +472,20 @@ void check_collision(int i, int j){
 
         }
         else if(dx<0){
-            if(all_static_balls[i][j-1].exist==0){
+            if(all_static_balls[i][j+1].exist==0){
                 i = i;
                 j = j+1;
             }
             else{
                 i = i+1;
-                j = j-1;
+                j = j+1;
             }
         }
         startchecking = 1;
     }
     if(ball_y + ball_radius > height) startchecking = 1;
     //checking around i,j
-    if(startchecking){
+    if(startchecking && throw_ball){
     if (i!=0 && all_static_balls[i-1][j].exist){
         if (r==all_static_balls[i-1][j].red && g==all_static_balls[i-1][j].green && b==all_static_balls[i-1][j].blue){
         combo++;
@@ -242,6 +514,35 @@ void check_collision(int i, int j){
         all_static_balls[i][j+1].exist=1;
         }
     }
+    // /*
+    if (i!=0 && j!=0 && all_static_balls[i-1][j-1].exist){
+        if (r==all_static_balls[i-1][j-1].red && g==all_static_balls[i-1][j-1].green && b==all_static_balls[i-1][j-1].blue){
+        combo++;
+        check_neighbour(i-1,j-1);
+        all_static_balls[i-1][j-1].exist=1;
+        }
+    }
+    if (i!=0 && j!=24 && all_static_balls[i-1][j+1].exist){
+        if (r==all_static_balls[i-1][j+1].red && g==all_static_balls[i-1][j+1].green && b==all_static_balls[i-1][j+1].blue){
+        combo++;
+        check_neighbour(i-1,j+1);
+        all_static_balls[i-1][j+1].exist=1;
+        }
+    }
+    if (j!=0 && all_static_balls[i+1][j-1].exist){
+        if (r==all_static_balls[i+1][j-1].red && g==all_static_balls[i+1][j-1].green && b==all_static_balls[i+1][j-1].blue){
+        combo++;
+        check_neighbour(i+1,j-1);
+        all_static_balls[i+1][j-1].exist=1;
+        }
+    }
+    if (j!=24 && all_static_balls[i+1][j+1].exist){
+        if (r==all_static_balls[i+1][j+1].red && g==all_static_balls[i+1][j+1].green && b==all_static_balls[i+1][j+1].blue){
+        combo++;
+        check_neighbour(i+1,j+1);
+        all_static_balls[i+1][j+1].exist=1;
+        }
+    }
 
     if(combo<=2){
         all_static_balls[i][j].exist=1;
@@ -249,7 +550,7 @@ void check_collision(int i, int j){
         all_static_balls[i][j].green=g;
         all_static_balls[i][j].blue=b;
     }
-    else{
+    else if(throw_ball){
         if (all_static_balls[i-1][j].exist){
             if (r==all_static_balls[i-1][j].red && g==all_static_balls[i-1][j].green && b==all_static_balls[i-1][j].blue){
                 all_static_balls[i-1][j].exist=0;
@@ -271,11 +572,30 @@ void check_collision(int i, int j){
                 all_static_balls[i][j+1].exist=0;
             }
         }
+        // /*
+        if (i!=0 && j!=0 && all_static_balls[i-1][j-1].exist){
+            if (r==all_static_balls[i-1][j-1].red && g==all_static_balls[i-1][j-1].green && b==all_static_balls[i-1][j-1].blue){
+            all_static_balls[i-1][j-1].exist=0;
+            }
+        }
+        if (i!=0 && j!=24 && all_static_balls[i-1][j+1].exist){
+            if (r==all_static_balls[i-1][j+1].red && g==all_static_balls[i-1][j+1].green && b==all_static_balls[i-1][j+1].blue){
+            all_static_balls[i-1][j+1].exist=0;
+            }
+        }
+        if (j!=0 && all_static_balls[i+1][j-1].exist){
+            if (r==all_static_balls[i+1][j-1].red && g==all_static_balls[i+1][j-1].green && b==all_static_balls[i+1][j-1].blue){
+            all_static_balls[i+1][j-1].exist=0;
+            }
+        }
+        if (j!=24 && all_static_balls[i+1][j+1].exist){
+            if (r==all_static_balls[i+1][j+1].red && g==all_static_balls[i+1][j+1].green && b==all_static_balls[i+1][j+1].blue){
+            all_static_balls[i+1][j+1].exist=0;
+            }
+        }
     }
     resetBall();
     }
-
-
 }
 
 void drawBall()
@@ -283,7 +603,8 @@ void drawBall()
 
     iSetColor(r,g,b);
     iFilledCircle(ball_x,ball_y, ball_radius);
-
+    iSetColor(255,255,255);
+    iFilledCircle(ball_x-5,ball_y+5,2);
     if(ball_x - ball_radius<0 || ball_x + ball_radius > width)
         dx = -dx;
 
@@ -295,14 +616,15 @@ void drawBall()
 
 }
 //----------------------game over function --------------------------------------
+
 void gameover(){
     for(int j = 0;j<25;j++){
         if(all_static_balls[30][j].exist){
-            exit(0);
+            screenCount = 5;
+            return;
         }
     }
 }
-
 void curv(int x, int y, int w, int h, int r){
         iFilledRectangle(x + r, y, w - 2*r, h); 
         iFilledRectangle(x, y + r, r, h - 2*r); 
@@ -321,11 +643,46 @@ void curv_border(int x, int y, int w, int h, int r){
         iFilledCircle(x + r, y + h - r, r+.3); 
         iFilledCircle(x + w - r, y + h - r, r+.3); 
 }
+void updateMusic()
+{
+    if (music_vol == 0)
+    {
+        if (ch != -1) iPauseSound(ch);
+        return;
+    }
+
+    bool wantGameMusic = (screenCount == 1 && screen == 2);
+    int desiredHandle = wantGameMusic ? game_muse : menu_muse;
+    int volumeValue = (volume == 0) ? 20 : (volume == 2) ? 60 : 40;
+
+    if (ch != -1 && ch != desiredHandle)
+    {
+        iPauseSound(ch);
+    }
+
+    if (musicPaused)
+    {
+        iResumeSound(desiredHandle);
+        musicPaused = false;
+    }
+
+    ch = desiredHandle;
+    targetVolume = volumeValue;
+
+    if (!fadingIn && currentVolume < targetVolume)
+        fadingIn = true;
+
+    iSetVolume(desiredHandle, currentVolume);
+}
+
+
 void iDraw()
 {
     // place your drawing codes here
     if(screenCount == 0)
     {
+        if(music_vol==1 && ch==-1)
+            updateMusic();
         iClear();
         iSetColor(147, 213, 230); 
         iFilledRectangle(0, 0, 500, 650); 
@@ -339,16 +696,15 @@ void iDraw()
         iSetColor(42, 54, 53);
         iTextBold(220, 218, "Exit", GLUT_BITMAP_TIMES_ROMAN_24); 
         iSetColor(232, 167, 160);
-        iFilledCircle(25, 25, 17);
+        iFilledCircle(483, 634, 15);
         iSetColor(255, 0, 0);
-        iFilledCircle(25, 25, 15);
+        iFilledCircle(483, 634, 13);
         iSetColor(0,0,0);
-        iTextBold(20,17,"?", GLUT_BITMAP_TIMES_ROMAN_24); 
-        int x2=420, y2=10, w2=70, h2=20, r2=10;
+        iTextBold(478, 626,"?", GLUT_BITMAP_TIMES_ROMAN_24);
         iSetColor(232, 167, 160);
-        curv_border(x2, y2, w2, h2, r2); 
+        curv_border(420, 10, 70, 20, 10); 
         iSetColor(24, 66, 35);
-        curv(x2, y2, w2, h2, r2);
+        curv(420, 10, 70, 20, 10);
         iSetColor(255, 255, 255);
         iTextBold(429, 15, "About Us", GLUT_BITMAP_HELVETICA_12);
     }
@@ -359,49 +715,85 @@ void iDraw()
         
         if(screen == 1)
         {
-            iShowImage(-100, -80, "assets/images/new_game_1.jpeg");
+            iShowImage(-110, -120, "assets/images/new_game_1.jpeg");
+            in_menu=1, in_game=0;
             iSetColor(77, 34, 29);
-            iFilledCircle(396, 460, 16);
+            iFilledCircle(387, 420, 16);
             iSetColor(255, 0, 0);
-            iFilledCircle(396, 460, 15);
+            iFilledCircle(387, 420, 15);
             iSetColor(255, 255, 255);
-            iTextBold(390, 455, "X", GLUT_BITMAP_HELVETICA_18);
+            iTextBold(381, 414, "X", GLUT_BITMAP_HELVETICA_18);
             iSetColor(255, 255, 255);
         }
         else if(screen == 2)
         {
-            iShowImage(-90, -60, "assets/images/bg00.jpeg");
-            /*-------------for debug purpose---------------
-            char details[100];
+            iClear();
+            iShowImage(-105, -60, "assets/images/bg00.jpg");
+            iSetColor(255, 0, 0);
+            iSetLineWidth(6);
+            iRectangle(3, 3, width - 6, height - 6);
+            iSetLineWidth(1);
+            iSetColor(22, 74, 57);
+            iFilledRectangle(0, 0, 236, 51);
+            iFilledRectangle(236, 0, 36, 28);
+            iFilledRectangle(267, 0, 233, 51);
+            iSetColor(19, 38, 46);
+            curv_border(4, 19, 75, 22, 8);
+            iSetColor(145, 209, 235);
+            curv(5, 20, 73, 20, 7);
+            in_menu=0, in_game=1;
+            iSetColor(102, 148, 143);
+            iFilledRectangle(236, 28, 70, 23);
             int j = ball_x / ball_diameter;
             int i = (height - ball_y) / ball_diameter;
-            sprintf(details, "%lf %lf %i %i",ball_x,ball_y,i,j);
-            iText(200, 200, details);*/
-            int j = ball_x / ball_diameter;
-            int i = (height - ball_y) / ball_diameter;
-    
+
             iSetLineWidth(3);
             drawAxis();
-        
             draw_all_static_ball();
+            iSetColor(255, 255, 255);
+            int timeNow = (int)(time(0) - gameStartTime);
+            char timerStr[30];
+            sprintf(timerStr, "Time: %02d:%02d", timeNow / 60, timeNow % 60);
+            iText(400, 625, timerStr);
             drawCannon();
             check_collision(i,j);
-        
             gameover();
-    
+
             if(throw_ball)
                 drawBall();
-        
+
+            if(moves == 4){
+                all_ball_down();
+                moves=0;
+            }
             char cmb[12];
             sprintf(cmb,"COMBO: %i",(combo>=2)?combo:0);
             iSetColor(255,255,255);
             iText(200, 300, "Hello World");
+            iSetColor(19, 38, 46);
             iText(10, 25, cmb);
         }
-    }
-    else if(screenCount == 2)
-    {
-        // Code for the third screen,  high-score screen
+        else if(screen == 3)
+        {
+            iClear();
+            iSetColor(147, 213, 230);
+            iFilledRectangle(0, 0, 500, 650);
+            iSetColor(77, 34, 29);
+            iTextBold(160, 500, "Choose Starting Structure", GLUT_BITMAP_TIMES_ROMAN_24);
+            iSetColor(23, 54, 73);
+            curv(150, 400, 200, 50, 15);
+            iSetColor(255,255,255);
+            iTextBold(190, 415, "Diamond", GLUT_BITMAP_TIMES_ROMAN_24);
+            curv(150, 320, 200, 50, 15);
+            iSetColor(255,255,255);
+            iTextBold(215, 335, "Box", GLUT_BITMAP_TIMES_ROMAN_24);
+            curv(150, 240, 200, 50, 15);
+            iSetColor(255,255,255);
+            iTextBold(170, 255, "Reverse Diamond", GLUT_BITMAP_TIMES_ROMAN_24);
+            curv(150, 160, 200, 50, 15);
+            iSetColor(255,255,255);
+            iTextBold(190, 175, "Random", GLUT_BITMAP_TIMES_ROMAN_24);
+        }
     }
     else if(screenCount == 3)
     {
@@ -461,7 +853,7 @@ void iDraw()
         iSetColor(154, 204, 237);
         curv(232, 285, 168, 40, 13); 
 
-        if(music_vol==0)
+        if(music_vol == 0)
         {          
             iSetColor(42, 54, 53);
             iTextBold(260, 299, "On", GLUT_BITMAP_HELVETICA_18); 
@@ -473,7 +865,7 @@ void iDraw()
             iTextBold(339, 299, "Off", GLUT_BITMAP_HELVETICA_18); 
             // PlaySound(0,0,0); 
         }
-        else if(music_vol==1)
+        else if(music_vol == 1)
         {
             iSetColor(220, 247, 235);
             curv_border(232, 285, 84, 40, 13); 
@@ -500,6 +892,25 @@ void iDraw()
     else if(screenCount == 5)
     {
         // Code for the sixth screen,  game over screen
+        iClear();
+        iShowImage(-50, -30, "assets/images/bg00.jpg");
+        iSetColor(255, 255, 255);
+        iText(180, 500, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
+
+        iSetColor(150, 0, 0);
+        curv(120, 400, 260, 50, 15);
+        iSetColor(255,255,255);
+        iTextBold(170, 415, "Retry This Set", GLUT_BITMAP_TIMES_ROMAN_24);
+
+        iSetColor(0, 100, 0);
+        curv(120, 320, 260, 50, 15);
+        iSetColor(255,255,255);
+        iTextBold(150, 335, "Try Different Set", GLUT_BITMAP_TIMES_ROMAN_24);
+
+        iSetColor(0, 0, 150);
+        curv(120, 240, 260, 50, 15);
+        iSetColor(255,255,255);
+        iTextBold(150, 255, "Back To Menu", GLUT_BITMAP_TIMES_ROMAN_24);
     }
     else if(screenCount == 6)
     {
@@ -540,7 +951,7 @@ void iDraw()
         iText(50, 249.3, "6. Click on 'About Us' to know about the", GLUT_BITMAP_HELVETICA_18);
         iText(50, 223.9, "    game developers.", GLUT_BITMAP_HELVETICA_18);
     }
-    else if(screenCount==8){
+    else if(screenCount == 8){
         iClear();
         iShowImage(-50, -30, "assets/images/bg_7.png");
         iSetTransparentColor(147, 213, 230, 0.5);
@@ -575,6 +986,36 @@ void iDraw()
         iTextBold(50, 203, "c", GLUT_BITMAP_HELVETICA_12); 
         iTextBold(62, 200, "Copyright to the owners", GLUT_BITMAP_HELVETICA_18);
     }
+    if(shouldStartMuse)
+    {
+        updateMusic();
+        shouldStartMuse = false;
+    }
+    if (fadingIn)
+    {
+        currentVolume += 2;
+        if (currentVolume >= targetVolume)
+        {
+            currentVolume = targetVolume;
+            fadingIn = false;
+        }
+        if (ch != -1)
+            iSetVolume(ch, currentVolume);
+    }
+    if (fadingOut)
+    {
+        currentVolume -= 2;
+        if (currentVolume <= 0)
+        {
+            currentVolume = 0;
+            fadingOut = false;
+            if (ch != -1)
+                iPauseSound(ch);
+        }
+        if (ch != -1)
+            iSetVolume(ch, currentVolume);
+    }
+
 }
 
 /*
@@ -605,20 +1046,23 @@ void iMouse(int button, int state, int mx, int my)
     {
         // place your codes here
         cout<<mx<<my<<screenCount<<endl;
-        
+        iPlaySound("assets/sounds/click.wav", false, 30);
         if(screenCount==0)
         {
-            if((mx-25)*(mx-25)+(my-25)*(my-25)<=289) 
+            if((mx-483)*(mx-483)+(my-634)*(my-634)<=225) 
             {
                 screenCount = 7; 
             }
             else if(mx >= 155 && mx <= 333 && my >= 417 && my <= 457) 
             {
                 screenCount = 1; 
+                screen = 1;
+                in_menu = 1, in_game = 0;
+                updateMusic();
             }
             else if(mx >= 155 && mx <= 333 && my >= 346 && my <= 391) 
             {
-                screenCount = 2; 
+                
             }
             else if(mx >= 155 && mx <= 333 && my >= 274 && my <= 318) 
             {
@@ -638,22 +1082,55 @@ void iMouse(int button, int state, int mx, int my)
             // Code for play game screen
             if(!name_taken)
             {
-                if(screen=1){
-                    if((mx-396)*(mx-396)+(my-460)*(my-460)<=256) 
+                if(screen==1){
+                    in_game=1, in_menu=0;
+                    if((mx-387)*(mx-387)+(my-420)*(my-420)<=256) 
                     {
                         screenCount = 0; 
+                        in_game=0, in_menu=1;
                     }
-                    else if(mx>=109 && mx<=245 && my>=276 && my<=304) 
+
+                    else if(mx>=99 && mx<=235 && my>=236 && my<=265) 
                     {
                         screen=2;
+                        updateMusic();
                     }
-                    else if(mx>=245 && mx<=381 && my>=276 && my<=304) 
+                    else if(mx>=243 && mx<=377 && my>=236 && my<=265) 
                     {
                         screen=3; 
                     }
                 }
             }
-            
+            if(screen==3){
+                if(mx >= 150 && mx <= 350 && my >= 400 && my <= 450) {
+                    subModeSelect = 2; 
+                    fillwithdiamond();
+                    updateMusic();
+                    screen = 2;
+                    gameStartTime = time(0);
+                }
+                else if(mx >= 150 && mx <= 350 && my >= 320 && my <= 370) {
+                    subModeSelect = 1; // Box
+                    fillwithballs();
+                    updateMusic();
+                    screen = 2;
+                    gameStartTime = time(0);
+                }
+                else if(mx >= 150 && mx <= 350 && my >= 240 && my <= 290) {
+                    subModeSelect = 3;
+                    fillwithreversediamond();
+                    updateMusic();
+                    screen = 2;
+                    gameStartTime = time(0);
+                }
+                else if(mx >= 150 && mx <= 350 && my >= 160 && my <= 210) {
+                    subModeSelect = 4;
+                    fillwithrandom();
+                    updateMusic();
+                    screen = 2;
+                    gameStartTime = time(0);
+                }
+            }
         }
         else if(screenCount==2)
         {
@@ -662,6 +1139,35 @@ void iMouse(int button, int state, int mx, int my)
         else if(screenCount==5)
         {
             // Code for game over screen
+            if(mx >= 120 && mx <= 380 && my >= 400 && my <= 450){
+                if(subModeSelect == 1) fillwithballs();
+                else if(subModeSelect == 2) fillwithdiamond();
+                else if(subModeSelect == 3) fillwithreversediamond();
+                else if(subModeSelect == 4) fillwithrandom();
+                screenCount = 1;
+                screen = 2;
+                gameStartTime = time(0);
+            }
+            else if(mx >= 120 && mx <= 380 && my >= 320 && my <= 370){
+                // Try different set
+                screen = 4;
+                screenCount = 1;
+            }
+            else if(mx >= 120 && mx <= 380 && my >= 240 && my <= 290){
+                screen = 1;
+                screenCount = 0;
+            }
+        }
+        else if(screenCount==2)
+        {
+            // Code for high-score screen
+            if(mx >= 120 && mx <= 380 && my >= 400 && my <= 450) {
+                screenCount = 0; // Back to main menu
+            }
+            else if(mx >= 120 && mx <= 380 && my >= 320 && my <= 370) {
+                screenCount = 0; // Back to main menu
+            }
+
         }
         else if(screenCount==6)
         {
@@ -698,14 +1204,10 @@ void iMouse(int button, int state, int mx, int my)
             else if (mx >= 236 && mx <= 312 && my >= 290 && my <= 325)
             {
                 music_vol = 1;
-                if (ch == -1) {
-                    ch = iPlaySound("assets/sounds/music_mid.wav", true, 50);
-                    iSetVolume(ch, (volume == 0) ? 20 : (volume == 2) ? 70 : 40);
-                }
-                else {
-                    iResumeSound(ch);
-                }
+                musicPaused = true;
+                shouldStartMuse = true;
             }
+
             else if (mx >= 313 && mx <= 400 && my >= 288 && my <= 331)
             {
                 music_vol = 0;
@@ -730,16 +1232,13 @@ void iMouse(int button, int state, int mx, int my)
                     iSetVolume(ch, 70); 
             }
         }
+
         else if(screenCount == 8)
         {
             if((mx-460)*(mx-460)+(my-504)*(my-504)<=225) 
             {
                 screenCount = 0; 
             }
-        }
-        if(mx>=0 && mx<=500 && my>=0 && my<=650)
-        {
-            iPlaySound("assets/sounds/click.wav", false, 50);
         }
     }
 }
@@ -762,33 +1261,41 @@ void iKeyboard(unsigned char key)
     if(screenCount == 1){
     switch (key)
     {
-    case 'q':
-        // do something with 'q'
-        screenCount=0;
-        break;
-    case 'a':
-        if(angle>-80)
-            angle-=2.5;
-        break;
-    case 'd':
-        if(angle<80)
-            angle+=2.5;
-        break;
-    case 'w':
-        if(throw_ball==0)
-            combo=0;
-            setBall();
-        break;
-    case 'f':
-        fillwithballs();
-        break;
-    case 'r':
-        noballs();
-        break;
-
-    // place your codes for other keys here
-    default:
-        break;
+        case 'q':
+            // do something with 'q'
+            screenCount=0;
+            updateMusic();
+            break;
+        case 'a':
+            if(angle>-80)
+                angle-=2.5;
+                break;
+        case 'd':
+            if(angle<80)
+                angle+=2.5;
+            break;
+        case 'w':
+            if(throw_ball==0)
+                combo=0;
+                setBall();
+            break;
+        case 'f':
+            //fillwithballs();
+            //fillwithdiamond();
+            all_ball_down();
+            break;
+        case '0':
+            noballs();
+            break;
+        case '1':
+            fillwithballs();
+            break;
+        case '2':
+            fillwithdiamond();
+            break;
+        // place your codes for other keys here
+        default:
+            break;
     }
 }
 }
@@ -820,7 +1327,12 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     // place your own initialization codes here.
     iInitializeSound();
-
+    menu_muse = iPlaySound("assets/sounds/music_menu.wav", true, 0);
+    iPauseSound(menu_muse);
+    game_muse = iPlaySound("assets/sounds/music_game.wav", true, 0);
+    iPauseSound(game_muse);
+    Sleep(150);
+    // iPauseSound(loadGameMus);
     iInitialize(500, 650, "Bouncy Bonanza");
     return 0;
 }
