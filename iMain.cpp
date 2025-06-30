@@ -123,11 +123,11 @@ void all_ball_up()
 void fillwithballs(){
 
     for(int i=0;i<5;i++){
-        int c = 0;
+        
         for(int j =0;j<25;j++){
             staticBall tempBall;
             tempBall.exist =1;
-            switch(c%6){
+            switch(rand()%6){
                 case 0:tempBall.red =255;tempBall.blue =0;tempBall.green =0;break;
                 case 1:tempBall.green =255;tempBall.red =0;tempBall.blue =0;break;
                 case 2:tempBall.blue =255;tempBall.red =0;tempBall.green =0;break;
@@ -136,7 +136,7 @@ void fillwithballs(){
                 case 5:tempBall.blue =255;tempBall.red =255;tempBall.green =0;break;
             }
             all_static_balls[i][j] = tempBall;
-            c++;
+            
         }
     }
 
@@ -177,57 +177,30 @@ void fillwithdiamond()
         set_static_ball(rand()%6,7,i+5);
     }
 }
-void fillwithreversediamond()
+
+void fillwithpyramid()
 {
     noballs();
     set_coordinates();
 
-    for(int i = 0; i < 11; i++) {
-        set_static_ball(rand() % 6, i, i + 2);
-        set_static_ball(rand() % 6, i, -i + 22);
-    }
-    for(int i = 0; i < 10; i++) {
-        set_static_ball(rand() % 6, i, i + 3);
-        set_static_ball(rand() % 6, i, -i + 21);
-    }
-    for(int i = 0; i < 9; i++) {
-        set_static_ball(rand() % 6, i, i + 4);
-        set_static_ball(rand() % 6, i, -i + 20);
-    }
-    for(int i = 0; i < 8; i++) {
-        set_static_ball(rand() % 6, i, i + 5);
-        set_static_ball(rand() % 6, i, -i + 19);
-    }
-    for(int i = 0; i < 7; i++) {
-        set_static_ball(rand() % 6, i, i + 6);
-        set_static_ball(rand() % 6, i, -i + 18);
-    }
-    for(int i = 0; i < 6; i++) {
-        set_static_ball(rand() % 6, i, i + 7);
-        set_static_ball(rand() % 6, i, -i + 17);
-    }
-    for(int i = 0; i < 5; i++) {
-        set_static_ball(rand() % 6, i, i + 8);
-        set_static_ball(rand() % 6, i, -i + 16);
-    }
-    for(int i = 0; i < 4; i++) {
-        set_static_ball(rand() % 6, i, i + 9);
-        set_static_ball(rand() % 6, i, -i + 15);
-    }
-    for(int i = 0; i < 3; i++) {
-        set_static_ball(rand() % 6, i, i + 10);
-        set_static_ball(rand() % 6, i, -i + 14);
-    }
-    for(int i = 0; i < 2; i++) {
-        set_static_ball(rand() % 6, i, i + 11);
-        set_static_ball(rand() % 6, i, -i + 13);
-    }
-    set_static_ball(rand() % 6, 0, 12);
+    int base_row = 13; // Bottom of pyramid (0-indexed)
+    int max_balls = 15; // Number of balls in the base row
+    int center_col = 12;
 
-    for(int i = 0; i < 7; i++) {
-        all_ball_down();
+    for (int row = 0; row < max_balls; row++) {
+        int balls_in_row = max_balls - row;
+        int start_col = center_col - (balls_in_row / 2);
+
+        for (int k = 0; k < balls_in_row; k++) {
+            int col = start_col + k;
+            if (col >= 0 && col < 25)
+                set_static_ball(rand() % 6, base_row - row, col);
+        }
     }
+
 }
+
+
 void fillwithrandom()
 {
     int r = rand() % 3;
@@ -238,7 +211,7 @@ void fillwithrandom()
         fillwithdiamond();
         subModeSelect = 2;
     } else {
-        fillwithreversediamond();
+        fillwithpyramid();
         subModeSelect = 3;
     }
 }
@@ -714,14 +687,18 @@ void iDraw()
         {
             iClear();
             iShowImage(-110, -120, "assets/images/screen3.jpeg");
-            iSetTransparentColor(147, 213, 230, 0.3);
+            iSetTransparentColor(147, 213, 230, 0.4);
             iFilledRectangle(0, 0, 500, 650);
+            iSetColor(92, 72, 41);
+            curv_border(143, 470, 210, 50, 16);
+            iSetColor(245, 199, 125);
+            curv(143, 470, 210, 50, 16);
             iSetColor(77, 34, 29);
-            iTextBold(160, 500, "Choose Starting Structure", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(155, 480, "Choose a Structure", GLUT_BITMAP_TIMES_ROMAN_24);
             iSetColor(23, 54, 73);
             curv(150, 400, 200, 50, 15);
             iSetColor(255,255,255);
-            iTextBold(190, 415, "Diamond", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(195, 415, "Diamond", GLUT_BITMAP_TIMES_ROMAN_24);
             iSetColor(23, 54, 73);
             curv(150, 320, 200, 50, 15);
             iSetColor(255,255,255);
@@ -729,11 +706,11 @@ void iDraw()
             iSetColor(23, 54, 73);
             curv(150, 240, 200, 50, 15);
             iSetColor(255,255,255);
-            iTextBold(170, 255, "Reverse Diamond", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(195, 255, "Pyramid", GLUT_BITMAP_TIMES_ROMAN_24);
             iSetColor(23, 54, 73);
             curv(150, 160, 200, 50, 15);
             iSetColor(255,255,255);
-            iTextBold(190, 175, "Random", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(196, 175, "Random", GLUT_BITMAP_TIMES_ROMAN_24);
         }
     }
     else if(screenCount == 3)
@@ -1053,7 +1030,7 @@ void iMouse(int button, int state, int mx, int my)
                 }
                 else if(mx >= 150 && mx <= 350 && my >= 240 && my <= 290) {
                     subModeSelect = 3;
-                    fillwithreversediamond();
+                    fillwithpyramid();
                     screen = 2;
                     shouldStartMuse = true;
                     updateMusic();
@@ -1087,7 +1064,7 @@ void iMouse(int button, int state, int mx, int my)
             if(mx >= 120 && mx <= 380 && my >= 400 && my <= 450){
                 if(subModeSelect == 1) fillwithballs();
                 else if(subModeSelect == 2) fillwithdiamond();
-                else if(subModeSelect == 3) fillwithreversediamond();
+                else if(subModeSelect == 3) fillwithpyramid();
                 else if(subModeSelect == 4) fillwithrandom();
                 screenCount = 1;
                 screen = 2;
@@ -1201,13 +1178,14 @@ void iKeyboard(unsigned char key)
     {
         case 'q':
             // do something with 'q'
-            screenCount=0;
+            screen=2;
             updateMusic();
+            iDraw();
             break;
         case 'a':
             if(angle>-80)
                 angle-=2.5;
-                break;
+            break;
         case 'd':
             if(angle<80)
                 angle+=2.5;
@@ -1265,7 +1243,6 @@ int main(int argc, char *argv[])
     glutInit(&argc, argv);
     // place your own initialization codes here.
     iInitializeSound();
-    menu_muse = iPlaySound("assets/sounds/music_menu.wav", true, 0);
     menu_muse = iPlaySound("assets/sounds/music_menu.wav", true, 0);
     ch = menu_muse; 
     iSetVolume(menu_muse, 0);
